@@ -26,12 +26,12 @@ app = Flask(__name__)
 }
 """
 
-usuariosBanco = [{
+usuariosBanco = {1 :{
    'usuario' : 'marcilio',
    'nome' : 'Marcilio F Oliveira',
    'id' : 1,
    'carrinho' : {}
-}]
+}} 
 
 
 @app.route('/usuarios/todos', methods=['GET'])
@@ -45,14 +45,15 @@ def new_usuario():
     else:
         return {'Resposta': 'Formato de dados inválido'}
 
+    novoID = len(usuariosBanco) + 1
     novoUsuario = {
         'usuario' : data.get('usuario'),
         'nome' : data.get('nome'),
-        'id' : usuariosBanco[-1]["id"] + 1,
+        'id' : novoID,
         'carrinho' : {}
     }
 
-    usuariosBanco.append(novoUsuario)
+    usuariosBanco[novoID] = novoUsuario
 
     return {"Resposta": 'Usuário criado com sucesso!'}
 
@@ -63,7 +64,7 @@ def update_usuario(id):
     else:
         return {'Resposta': 'Formato de dados inválido'}
 
-    usuariosBanco[id-1]['nome'] = data.get('nome')
+    usuariosBanco[id]['nome'] = data.get('nome')
     return {"Resposta": 'Usuário atualizado com sucesso!'}
 
 @app.route('/carrinho/<int:id>', methods=['GET'])
@@ -73,7 +74,7 @@ def get_carrinho(id):
     else:
         return {'Resposta': 'Formato de dados inválido'}
 
-    return {'Resposta' : usuariosBanco[id-1]['carrinho']}
+    return {'Resposta' : usuariosBanco[id]['carrinho']}
 
 @app.route('/carrinho/adicionar/<int:id>', methods=['POST'])
 def add_produto(id):
@@ -88,8 +89,8 @@ def add_produto(id):
         'valor' : data.get('valor')
     }
 
-    usuariosBanco[id-1]['carrinho']['produtos'].append(novoProduto)
-    usuariosBanco[id-1]['carrinho']['total'] += novoProduto['valor']
+    usuariosBanco[id]['carrinho']['produtos'].append(novoProduto)
+    usuariosBanco[id]['carrinho']['total'] += novoProduto['valor']
 
     return {"Resposta": 'Produto adicionado com sucesso!'}
 
@@ -100,8 +101,8 @@ def remove_produto(id):
     else:
         return {'Resposta': 'Formato de dados inválido'}
 
-    usuariosBanco[id-1]['carrinho']['total'] -= data.get('valor')
-    usuariosBanco[id-1]['carrinho']['produtos'].remove(data.get('produto'))
+    usuariosBanco[id]['carrinho']['total'] -= data.get('valor')
+    usuariosBanco[id]['carrinho']['produtos'].remove(data.get('produto'))
 
     return {"Resposta": 'Produto removido com sucesso!'}
 
