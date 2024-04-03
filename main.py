@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify
+from flasgger import Swagger
 
 app = Flask(__name__)
+swagger = Swagger(app)
 
 # Dados de exemplo
 """
@@ -36,10 +38,82 @@ usuariosBanco = {1 :{
 
 @app.route('/usuarios/todos', methods=['GET'])
 def get_usuarios():
+    """
+    Returns all the users in the database
+    ---
+    responses:
+      200:
+        description: A list of users
+        schema:
+          type: object
+          properties:
+            Resposta:
+              type: object
+              properties:
+                usuario:
+                  type: string
+                nome:
+                  type: string
+                id:
+                  type: integer
+                carrinho:
+                  type: object
+                  properties:
+                    total:
+                      type: float
+                    produtos:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          codigo:
+                            type: integer
+                          nome:
+                            type: string
+                          valor:
+                            type: float
+        500:
+            description: Invalid data format
+            schema:
+                type: object
+                properties:
+                Resposta:
+                    type: string
+    """
     return {'Resposta' : usuariosBanco}
 
 @app.route('/usuarios/novo', methods=['POST'])
 def new_usuario():
+
+    """
+    Create a new user
+    ---
+    parameters:
+        - name: usuario
+          in: body
+          type: string
+          required: true
+        - name: nome
+          in: body
+          type: string
+          required: true
+    responses:
+        200:
+            description: User created successfully
+            schema:
+                type: object
+                properties:
+                    Resposta:
+                        type: string
+        500:
+            description: Invalid data format
+            schema:
+                type: object
+                properties:
+                    Resposta:
+                        type: string
+    """
+
     if request.json:
         data = request.json
     else:
