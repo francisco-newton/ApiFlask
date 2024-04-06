@@ -9,7 +9,7 @@ usuariosBanco = {1 :{
    'usuario' : 'pessoa1',
    'nome' : 'Pessoa 1 Padrão',
    'id' : 1,
-   'carrinho' : {}
+   'carrinho' : {'produtos' : [], 'total' : 0.0}
 }} 
 
 
@@ -122,7 +122,7 @@ def new_usuario():
             'usuario' : data.get('usuario'),
             'nome' : data.get('nome'),
             'id' : novoID,
-            'carrinho' : {}
+            'carrinho' : {'produtos' : [], 'total' : 0.0}
         }
 
         usuariosBanco[novoID] = novoUsuario
@@ -174,6 +174,9 @@ def update_usuario(id):
             data = request.json
         else:
             return {'Resposta': 'Formato de dados inválido'}, 400
+
+
+        #return {'Resposta' : usuariosBanco[str(id)]['nome']}, 200
 
         usuariosBanco[id]['nome'] = data.get('nome')
         return {"Resposta": 'Usuário atualizado com sucesso!'}, 200
@@ -288,10 +291,11 @@ def add_produto(id):
         }
 
         usuariosBanco[id]['carrinho']['produtos'].append(novoProduto)
-        usuariosBanco[id]['carrinho']['total'] += novoProduto['valor']
+        usuariosBanco[id]['carrinho']['total'] += float(novoProduto['valor'])
 
         return {"Resposta": 'Produto adicionado com sucesso!'}, 201
-    except:
+    except Exception as e:
+        print(e)
         return {'Resposta': 'Erro interno'}, 500
 
 @app.route('/carrinho/remover/<int:id>', methods=['DELETE'])
@@ -378,16 +382,16 @@ def get_total():
                         type: string
     """
     try:
-        if request.json:
-            data = request.json
-        else:
-            return {'Resposta': 'Formato de dados inválido'}, 400
-
-        total = 0
+        total = float(0)
         for usuario in usuariosBanco:
-            total += usuario['carrinho']['total']
+            try:
+                total = total + usuario['carrinho']['total']
+            except Exception as e:
+                print(e)
+                pass
         return {'Resposta' : total}, 200
-    except:
+    except Exception as e:
+        print(e)
         return {'Resposta': 'Erro interno'}, 500
 
 if __name__ == '__main__':

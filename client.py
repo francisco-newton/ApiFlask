@@ -27,10 +27,11 @@ def pega_dados(op):
         get_usuarios()
         return True
     elif op == 4:
+        id = input("ID: ")
         codigo = input("Código: ")
         nome = input("Nome: ")
         valor = input("Valor: ")
-        add_produto(codigo, nome, valor)
+        add_produto(id, codigo, nome, valor)
         return True
     elif op == 5:
         id = input("ID: ")
@@ -62,7 +63,7 @@ def new_usuario(nome, usuario):
 
 # Atualiza um usuário
 def atualizar_usuario(id, nome):
-    url = f"http://localhost:5000/usuarios/atualizar/id={id}"
+    url = f"http://localhost:5000/usuarios/atualizar/{id}"
     data = {
         "nome": f"{nome}",
     }
@@ -71,13 +72,13 @@ def atualizar_usuario(id, nome):
 
 # Busca um carrinho pelo ID
 def get_carrinho(id):
-    url = f"http://localhost:5000/carrinho/id={id}"
+    url = f"http://localhost:5000/carrinho/{id}"
     response = rq.get(url)
     print(response.json())
 
 # Adiciona um produto ao carrinho
-def add_produto(codigo, nome, valor):
-    url = "http://localhost:5000/carrinho/adicionar"
+def add_produto(id, codigo, nome, valor):
+    url = f"http://localhost:5000/carrinho/adicionar/{id}"
     data = {
         "codigo": f"{codigo}",
         "nome": f"{nome}",
@@ -97,7 +98,7 @@ def remover_produto(id, codigo):
 
 # Retorna o total do carrinho
 def total_carrinho():
-    url = "http://localhost:5000/carrinho/total"
+    url = "http://localhost:5000/carrinhos/total"
     response = rq.get(url)
     print(response.json())
 
