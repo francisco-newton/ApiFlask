@@ -4,33 +4,10 @@ from flasgger import Swagger
 app = Flask(__name__)
 swagger = Swagger(app)
 
-# Dados de exemplo
-"""
-{
-   'usuario' : 'marcilio',
-   'nome' : 'Marcilio F Oliveira',
-   'id' : 1,
-   'carrinho' : {
-        'total' : 42,53
-        'produtos' : [
-             {
-                  'codigo' : 1,
-                  'nome' : 'película de celular',
-                  'valor': 30,00
-              },
-              {
-                  'codigo' : 22,
-                  'nome' : 'caneta de quadro branco',
-                  'valor' : 12,53
-              }
-         ]
-    }
-}
-"""
 
 usuariosBanco = {1 :{
-   'usuario' : 'marcilio',
-   'nome' : 'Marcilio F Oliveira',
+   'usuario' : 'pessoa1',
+   'nome' : 'Pessoa 1 Padrão',
    'id' : 1,
    'carrinho' : {}
 }} 
@@ -73,14 +50,17 @@ def get_usuarios():
                           valor:
                             type: float
         500:
-            description: Invalid data format
+            description: Erro interno
             schema:
                 type: object
                 properties:
                 Resposta:
                     type: string
     """
-    return {'Resposta' : usuariosBanco}
+    try:
+        return {'Resposta' : usuariosBanco}, 200
+    except:
+        return {'Resposta': 'Erro interno'}, 500
 
 @app.route('/usuarios/novo', methods=['POST'])
 def new_usuario():
@@ -104,9 +84,26 @@ def new_usuario():
                 type: object
                 properties:
                     Resposta:
+                        type: object
+                        properties:
+                            usuario:
+                                type: string
+                            nome:
+                                type: string
+                            id:
+                                type: integer
+                            carrinho:
+                                type: object
+                                properties:
+        400:
+            description: Invalid data format
+            schema:
+                type: object
+                properties:
+                    Resposta:
                         type: string
         500:
-            description: Invalid data format
+            description: Erro interno
             schema:
                 type: object
                 properties:
@@ -114,83 +111,284 @@ def new_usuario():
                         type: string
     """
 
-    if request.json:
-        data = request.json
-    else:
-        return {'Resposta': 'Formato de dados inválido'}
+    try:
+        if request.json:
+            data = request.json
+        else:
+            return {'Resposta': 'Formato de dados inválido'}, 400
 
-    novoID = len(usuariosBanco) + 1
-    novoUsuario = {
-        'usuario' : data.get('usuario'),
-        'nome' : data.get('nome'),
-        'id' : novoID,
-        'carrinho' : {}
-    }
+        novoID = len(usuariosBanco) + 1
+        novoUsuario = {
+            'usuario' : data.get('usuario'),
+            'nome' : data.get('nome'),
+            'id' : novoID,
+            'carrinho' : {}
+        }
 
-    usuariosBanco[novoID] = novoUsuario
-
-    return {"Resposta": 'Usuário criado com sucesso!'}
+        usuariosBanco[novoID] = novoUsuario
+        return {"Resposta": novoUsuario}, 200
+    except:
+        return {'Resposta': 'Erro interno'}, 500
 
 @app.route('/usuarios/atualizar/<int:id>', methods=['PUT'])
 def update_usuario(id):
-    if request.json:
-        data = request.json
-    else:
-        return {'Resposta': 'Formato de dados inválido'}
 
-    usuariosBanco[id]['nome'] = data.get('nome')
-    return {"Resposta": 'Usuário atualizado com sucesso!'}
+    """
+    Update an existing user
+    ---
+    parameters:
+        - name: id
+          in: path
+          type: integer
+          required: true
+        - name: nome
+          in: body
+          type: string
+          required: true
+    responses:
+        200:
+            description: User updated successfully
+            schema:
+                type: object
+                properties:
+                    Resposta:
+                        type: string
+        400:
+            description: Invalid data format
+            schema:
+                type: object
+                properties:
+                    Resposta:
+                        type: string
+        500:
+            description: Erro interno
+            schema:
+                type: object
+                properties:
+                    Resposta:
+                        type: string
+    """
+
+    try:
+        if request.json:
+            data = request.json
+        else:
+            return {'Resposta': 'Formato de dados inválido'}, 400
+
+        usuariosBanco[id]['nome'] = data.get('nome')
+        return {"Resposta": 'Usuário atualizado com sucesso!'}, 200
+    except:
+        return {'Resposta': 'Erro interno'}, 500
 
 @app.route('/carrinho/<int:id>', methods=['GET'])
 def get_carrinho(id):
-    if request.json:
-        data = request.json
-    else:
-        return {'Resposta': 'Formato de dados inválido'}
+    """
+    Get the user's cart	
+    ---	
+    parameters:
+        - name: id
+          in: path
+          type: integer
+          required: true
+    responses:
+        200:
+            description: The user's cart
+            schema:
+                type: object
+                properties:
+                    Resposta:
+                        type: object
+                        properties:
+                            total:
+                                type: float
+                            produtos:
+                                type: array
+                                items:
+                                    type: object
+                                    properties:
+                                        codigo:
+                                            type: integer
+                                        nome:
+                                            type: string
+                                        valor:
+                                            type: float
+        500:
+            description: Erro interno
+            schema:
+                type: object
+                properties:
+                    Resposta:
+                        type: string
+    """
 
-    return {'Resposta' : usuariosBanco[id]['carrinho']}
+    try:
+        if request.json:
+            data = request.json
+        else:
+            return {'Resposta': 'Formato de dados inválido'}, 400
+
+        return {'Resposta' : usuariosBanco[id]['carrinho']}, 200
+    except:
+        return {'Resposta': 'Erro interno'}, 500
 
 @app.route('/carrinho/adicionar/<int:id>', methods=['POST'])
 def add_produto(id):
-    if request.json:
-        data = request.json
-    else:
-        return {'Resposta': 'Formato de dados inválido'}
+    """
+    Add a product to the user's cart
+    ---
+    parameters:
+        - name: id
+          in: path
+          type: integer
+          required: true
+        - name: produto
+          in: body
+          type: object
+          required: true
+          properties:
+            codigo:
+              type: integer
+            nome:
+              type: string
+            valor:
+              type: float
+    responses: 
+        201:
+            description: Product added successfully
+            schema:
+                type: object
+                properties:
+                    Resposta:
+                        type: string
+        400:
+            description: Invalid data format
+            schema:
+                type: object
+                properties:
+                    Resposta:
+                        type: string
+        500:
+            description: Erro interno
+            schema:
+                type: object
+                properties:
+                    Resposta:
+                        type: string
+    """
+    try:
+        if request.json:
+            data = request.json
+        else:
+            return {'Resposta': 'Formato de dados inválido'}, 400
 
-    novoProduto = {
-        'codigo' : data.get('codigo'),
-        'nome' : data.get('nome'),
-        'valor' : data.get('valor')
-    }
+        novoProduto = {
+            'codigo' : data.get('codigo'),
+            'nome' : data.get('nome'),
+            'valor' : data.get('valor')
+        }
 
-    usuariosBanco[id]['carrinho']['produtos'].append(novoProduto)
-    usuariosBanco[id]['carrinho']['total'] += novoProduto['valor']
+        usuariosBanco[id]['carrinho']['produtos'].append(novoProduto)
+        usuariosBanco[id]['carrinho']['total'] += novoProduto['valor']
 
-    return {"Resposta": 'Produto adicionado com sucesso!'}
+        return {"Resposta": 'Produto adicionado com sucesso!'}, 201
+    except:
+        return {'Resposta': 'Erro interno'}, 500
 
 @app.route('/carrinho/remover/<int:id>', methods=['DELETE'])
 def remove_produto(id):
-    if request.json:
-        data = request.json
-    else:
-        return {'Resposta': 'Formato de dados inválido'}
+    """
+    Remove a product from the user's cart
+    ---
+    parameters:
+        - name: id
+          in: path
+          type: integer
+          required: true
+        - name: produto
+          in: body
+          type: object
+          required: true
+          properties:
+            valor:
+              type: float
+            produto:
+              type: object
+              properties:
+                codigo:
+                  type: integer
+                nome:
+                  type: string
+                valor:
+                  type: float
+    responses:
+        200:
+            description: Product removed successfully
+            schema:
+                type: object
+                properties:
+                    Resposta:
+                        type: string
+        400:
+            description: Invalid data format
+            schema:
+                type: object
+                properties:
+                    Resposta:
+                        type: string
+        500:
+            description: Erro interno
+            schema:
+                type: object
+                properties:
+                    Resposta:
+                        type: string
+    """
+    try:
+        if request.json:
+            data = request.json
+        else:
+            return {'Resposta': 'Formato de dados inválido'}, 400
 
-    usuariosBanco[id]['carrinho']['total'] -= data.get('valor')
-    usuariosBanco[id]['carrinho']['produtos'].remove(data.get('produto'))
+        usuariosBanco[id]['carrinho']['total'] -= data.get('valor')
+        usuariosBanco[id]['carrinho']['produtos'].remove(data.get('codigo'))
 
-    return {"Resposta": 'Produto removido com sucesso!'}
+        return {"Resposta": 'Produto removido com sucesso!'}, 200
+    except:
+        return {'Resposta': 'Erro interno'}, 500
 
 @app.route('/carrinhos/total', methods=['GET'])
 def get_total():
-    if request.json:
-        data = request.json
-    else:
-        return {'Resposta': 'Formato de dados inválido'}
+    """
+    Get the total value of all carts
+    ---
+    responses:
+        200:
+            description: The total value of all carts
+            schema:
+                type: object
+                properties:
+                    Resposta:
+                        type: float
+        500:
+            description: Erro interno
+            schema:
+                type: object
+                properties:
+                    Resposta:
+                        type: string
+    """
+    try:
+        if request.json:
+            data = request.json
+        else:
+            return {'Resposta': 'Formato de dados inválido'}, 400
 
-    total = 0
-    for usuario in usuariosBanco:
-        total += usuario['carrinho']['total']
-    return {'Resposta' : total}
+        total = 0
+        for usuario in usuariosBanco:
+            total += usuario['carrinho']['total']
+        return {'Resposta' : total}, 200
+    except:
+        return {'Resposta': 'Erro interno'}, 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
